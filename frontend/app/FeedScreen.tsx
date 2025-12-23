@@ -1,24 +1,60 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
-import { Dimensions, FlatList, ViewToken } from 'react-native'
-import VideoCell, { FeedItem } from './VideoCell'
+import { FeedItem, fetchFeed } from '@/api/feed'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Dimensions, FlatList, RefreshControl, ViewToken } from 'react-native'
+import VideoCell from './VideoCell'
 
 const { height: SCREEN_H } = Dimensions.get('window')
 
-const MOCK_DATA: FeedItem[] = [
-  {
-    id: '1',
-    hlsUrl: 'https://example.com/video1/master.m3u8',
-    caption: 'hello',
-  },
-  {
-    id: '2',
-    hlsUrl: 'https://example.com/video2/master.m3u8',
-    caption: 'world',
-  },
-]
-
 const FeedScreen = () => {
-  const [activeItemId, setActiveItemId] = useState<string | null>(null)
+  const [items, setItems] = useState<FeedItem[]>([])
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [activeItemId, setActiveItemId] = useState<string>('')
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const loadFirst = useCallback(async () => {
+    setRefreshing(true)
+
+    try {
+      const res = await fetchFeed({
+        cursor: null,
+        limit: 10,
+      })
+
+      setItems(res.items)
+      setNextCursor(res.nextCursor)
+      setActiveItemId(res.items[0]?.id ?? '')
+    } finally {
+      setRefreshing(false)
+    }
+  }, [])
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !nextCursor) return
+
+    setLoadingMore(true)
+
+    try {
+      const res = await fetchFeed({
+        cursor: nextCursor,
+        limit: 10,
+      })
+
+      setItems((prev) => {
+        const seen = new Set(prev.map((x) => x.id))
+        const add = res.items.filter((x) => !seen.has(x.id))
+        return [...prev, ...add]
+      })
+      setNextCursor(res.nextCursor)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [loadingMore, nextCursor])
+
+  // Load first page on mount
+  useEffect(() => {
+    void loadFirst()
+  }, [loadFirst])
 
   // ビデオが60%以上表示されたらアクティブとみなす
   const viewabilityConfig = useMemo(
@@ -48,7 +84,7 @@ const FeedScreen = () => {
 
   return (
     <FlatList
-      data={MOCK_DATA}
+      data={items}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <VideoCell item={item} isActive={item.id === activeItemId} />
@@ -64,6 +100,17 @@ const FeedScreen = () => {
       maxToRenderPerBatch={2}
       windowSize={5}
       removeClippedSubviews
+      // スクロールで次のフィードを出すためのattributes
+      onEndReachedThreshold={0.5}
+      onEndReached={() => {
+        void loadMore()
+      }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => void loadFirst()}
+        />
+      }
     />
   )
 }
