@@ -1,13 +1,8 @@
+import { FeedItem } from '@/api/feed'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { useEffect } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import styles from './styles'
-
-export type FeedItem = {
-  id: string
-  hlsUrl: string // 例: https://cdn.example.com/hls/{id}/master.m3u8
-  caption?: string
-}
 
 const VideoCell = ({
   item,
