@@ -1,0 +1,9 @@
+target
+**/target
+.git
+**/.git
+**/.DS_Store
+**/node_modules
+**/.expo
+**/dist
+**/.env
