@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:18.1-alpine3.23
+    container_name: postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: tiktok_pakuri
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d tiktok_pakuri"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    container_name: api
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: postgres://root:root@postgres:5432/tiktok_pakuri
+      API_BIND: 0.0.0.0:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    container_name: worker
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: postgres://root:root@postgres:5432/tiktok_pakuri
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
