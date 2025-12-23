@@ -36,7 +36,8 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -47,3 +48,6 @@ frontend/app-example
 # generated native folders
 /ios
 /android
+
+# Backend (Rust)
+/backend/target/
