@@ -8,7 +8,7 @@ const { height: SCREEN_H } = Dimensions.get('window')
 const FeedScreen = () => {
   const [items, setItems] = useState<FeedItem[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
-  const [activeItemId, setActiveItemId] = useState<string>('')
+  const [activeItemId, setActiveItemId] = useState<string | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
 
