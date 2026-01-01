@@ -8,7 +8,7 @@ const { height: SCREEN_H } = Dimensions.get('window')
 const FeedScreen = () => {
   const [items, setItems] = useState<FeedItem[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
-  const [activeItemId, setActiveItemId] = useState<string>('')
+  const [activeItemId, setActiveItemId] = useState<string | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -56,9 +56,9 @@ const FeedScreen = () => {
     void loadFirst()
   }, [loadFirst])
 
-  // ビデオが60%以上表示されたらアクティブとみなす
+  // ビデオがほぼ全画面になったらアクティブとみなす
   const viewabilityConfig = useMemo(
-    () => ({ itemVisiblePercentThreshold: 60 }),
+    () => ({ itemVisiblePercentThreshold: 90 }),
     [],
   )
 
@@ -91,6 +91,9 @@ const FeedScreen = () => {
       )}
       pagingEnabled
       decelerationRate="fast"
+      snapToInterval={SCREEN_H}
+      snapToAlignment="start"
+      disableIntervalMomentum
       showsVerticalScrollIndicator={false}
       viewabilityConfig={viewabilityConfig}
       onViewableItemsChanged={onViewableItemsChanged}
