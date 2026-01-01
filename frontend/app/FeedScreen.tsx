@@ -56,9 +56,9 @@ const FeedScreen = () => {
     void loadFirst()
   }, [loadFirst])
 
-  // ビデオが60%以上表示されたらアクティブとみなす
+  // ビデオがほぼ全画面になったらアクティブとみなす
   const viewabilityConfig = useMemo(
-    () => ({ itemVisiblePercentThreshold: 60 }),
+    () => ({ itemVisiblePercentThreshold: 90 }),
     [],
   )
 
@@ -91,6 +91,9 @@ const FeedScreen = () => {
       )}
       pagingEnabled
       decelerationRate="fast"
+      snapToInterval={SCREEN_H}
+      snapToAlignment="start"
+      disableIntervalMomentum
       showsVerticalScrollIndicator={false}
       viewabilityConfig={viewabilityConfig}
       onViewableItemsChanged={onViewableItemsChanged}
