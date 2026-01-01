@@ -1,0 +1,38 @@
+name: Discord Notification on Merge
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_REPOSITORY_FULL_NAME: ${{ github.event.pull_request.base.repo.full_name }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_USER: ${{ github.event.pull_request.user.login }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+                \"content\": null,
+                \"embeds\": [
+                  {
+                    \"title\": \"${PR_REPOSITORY_FULL_NAME} : 🎉 Pull Request がマージされました\",
+                    \"description\": \"**${PR_USER}** による Pull Request [${PR_TITLE}](${PR_URL}) がマージされました！！\",
+                    \"color\": 5814783,
+                    \"author\": {
+                      \"name\": \"${{ github.repository_owner }}\",
+                      \"url\": \"https://github.com/${{ github.repository_owner }}\",
+                      \"icon_url\": \"https://github.com/${{ github.repository_owner }}.png\"
+                    }
+                  }
+                ],
+                \"username\": \"GitHub Actions Bot\",
+                \"avatar_url\": \"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png\"
+              }" \
+          $DISCORD_WEBHOOK_URL
